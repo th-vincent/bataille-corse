@@ -16,3 +16,10 @@ export function getSlapType(pile) {
 
   return null; // rien à taper
 }
+
+// Coût en cartes pour se défendre face à une figure (pas d'as ici)
+const FIGURE_COST = { J: 1, Q: 2, K: 3 };
+
+export function figureCost(card) {
+  return FIGURE_COST[card.rank] ?? 0; // 0 = pas une figure
+}

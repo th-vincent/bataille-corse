@@ -1,46 +1,78 @@
 // state.js
 import { createDeck, shuffle, deal } from "./cards.js";
-import { getSlapType } from "./rules.js";
+import { getSlapType, figureCost } from "./rules.js";
 
-// Crée une nouvelle partie
 export function newGame() {
   const { player, computer } = deal(shuffle(createDeck()));
   return {
-    hands: { player, computer }, // les mains (la carte du dessus est en index 0)
-    pile: [],                    // le tas central (la carte du dessus est la dernière)
-    turn: "player",              // à qui le tour
+    hands: { player, computer },
+    pile: [],
+    turn: "player",     // "player", "computer", ou null pendant le ramassage du tas
+    challenge: null,    // { challenger, remaining } : attaque en cours
+    collecting: null,   // qui va ramasser le tas (après une défense ratée)
   };
 }
 
-// Le joueur dont c'est le tour pose sa carte du dessus sur le tas
 export function playCard(state) {
   const who = state.turn;
-  const card = state.hands[who].shift(); // retire la 1re carte de la main
+  const other = who === "player" ? "computer" : "player";
 
-  if (!card) return null; // plus de cartes : on gérera la fin de partie plus tard
+  const card = state.hands[who].shift();
+  if (!card) return null; // plus de cartes
 
   state.pile.push(card);
-  state.turn = who === "player" ? "computer" : "player";
+  const cost = figureCost(card);
+
+  if (cost > 0) {
+    // Une figure (attaque, ou contre-attaque) : l'autre doit se défendre
+    state.challenge = { challenger: who, remaining: cost };
+    state.turn = other;
+  } else if (state.challenge) {
+    // Défense en cours : une carte de moins à poser
+    state.challenge.remaining--;
+    if (state.challenge.remaining === 0) {
+      // Défense ratée : l'attaquant va ramasser le tas
+      state.collecting = state.challenge.challenger;
+      state.challenge = null;
+      state.turn = null; // personne ne pose pendant le délai
+    }
+    // sinon, le défenseur continue (state.turn ne change pas)
+  } else {
+    state.turn = other; // tour normal
+  }
+
   return { who, card };
 }
 
-// `who` ("player" ou "computer") tape sur le tas
+// Ramassage du tas par l'attaquant (appelé après le délai)
+export function collectPile(state) {
+  const winner = state.collecting;
+  if (!winner) return null;
+
+  const won = state.pile.length;
+  state.hands[winner].push(...state.pile);
+  state.pile = [];
+  state.collecting = null;
+  state.turn = winner;
+  return { winner, won };
+}
+
 export function slap(state, who) {
-  if (state.pile.length === 0) return null; // rien sur la table, on ignore
+  if (state.pile.length === 0) return null;
 
   const type = getSlapType(state.pile);
 
   if (type) {
-    // Bonne frappe : on ramasse le tas, et on rejoue
     const won = state.pile.length;
-    state.hands[who].push(...state.pile); // sous la main (le dessus est en index 0)
+    state.hands[who].push(...state.pile);
     state.pile = [];
+    state.challenge = null;   // la frappe annule toute attaque en cours
+    state.collecting = null;
     state.turn = who;
     return { who, ok: true, type, won };
   }
 
-  // Fausse frappe : pénalité, une carte du dessus de la main part au fond du tas
   const penalty = state.hands[who].shift();
-  if (penalty) state.pile.unshift(penalty); // unshift = fond du tas (le dessus est le dernier)
+  if (penalty) state.pile.unshift(penalty);
   return { who, ok: false, type: null, won: 0 };
 }

@@ -1,1 +1,41 @@
-<script type="module" src="game.js"></script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bataille corse</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <section class="side">
+      <h2>Ordinateur</h2>
+      <p class="count"><span id="computer-count">26</span> cartes</p>
+    </section>
+
+    <section id="table">
+      <div id="pile-area">
+  <div id="pile-count">
+    <span id="pile-number">0</span>
+    <small>au tas</small>
+  </div>
+  <div id="pile"></div>
+</div>
+      <p id="challenge-info"></p>
+      <p id="message">Pose ta carte pour commencer.</p>
+    </section>
+
+    <section class="side">
+      <h2>Toi</h2>
+      <p class="count"><span id="player-count">26</span> cartes</p>
+      <div class="buttons">
+        <button id="play-btn">Poser (Entrée)</button>
+        <button id="slap-btn">Taper (Espace)</button>
+      </div>
+    </section>
+
+    <button id="restart-btn" hidden>Rejouer</button>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
