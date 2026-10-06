@@ -42,6 +42,6 @@ export function cardFaceHTML(card, slot, behind) {
 
   return `<div class="card ${red ? "red" : ""} ${behind ? "behind" : ""}"
     style="left: calc(var(--step) * ${slot}); z-index: ${slot}">
-    ${cornerHTML("tr", rank, suit)}${center}${cornerHTML("bl", rank, suit)}
+    ${cornerHTML("tl", rank, suit)}${center}${cornerHTML("br", rank, suit)}
   </div>`;
 }

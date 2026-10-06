@@ -23,12 +23,12 @@ main {
 }
 
 h2 { margin: 0; font-size: 1.1rem; opacity: 0.85; }
-.count { margin: 4px 0 0; font-size: 1.6rem; font-weight: 700; }
+
 
 :root {
-  --w: 120px;    /* largeur d'une carte */
-  --h: 180px;    /* hauteur d'une carte */
-  --step: 60px;  /* décalage entre deux cartes (plus petit = plus de chevauchement) */
+  --w: 130px;    /* largeur d'une carte */
+  --h: 195px;    /* hauteur d'une carte */
+  --step: 65px;  /* décalage entre deux cartes */
 }
 
 #pile-area {
@@ -70,23 +70,24 @@ h2 { margin: 0; font-size: 1.1rem; opacity: 0.85; }
 .card.behind { filter: grayscale(1) brightness(0.65); }
 
 /* Valeur + symbole dans les coins (haut droite, bas gauche à l'envers) */
+/* Valeur + symbole dans les coins (haut gauche, bas droite à l'envers) */
 .corner {
   position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
-  font-size: calc(var(--w) * 0.15);
+  font-size: calc(var(--w) * 0.14);
 }
-.corner.tr { top: 5%; right: 7%; }
-.corner.bl { bottom: 5%; left: 7%; transform: rotate(180deg); }
+.corner.tl { top: 5%; left: 7%; }
+.corner.br { bottom: 5%; right: 7%; transform: rotate(180deg); }
 
-/* Cartes numérotées : symboles au centre */
-.pips { position: absolute; top: 22%; bottom: 22%; left: 22%; right: 22%; }
+/* Cartes numérotées : zone des symboles plus étroite pour ne pas toucher les coins */
+.pips { position: absolute; top: 24%; bottom: 24%; left: 30%; right: 30%; }
 .pip {
   position: absolute;
   transform: translate(-50%, -50%);
-  font-size: calc(var(--w) * 0.18);
+  font-size: calc(var(--w) * 0.16);
   line-height: 1;
 }
 .pip.flip { transform: translate(-50%, -50%) rotate(180deg); }
@@ -95,7 +96,7 @@ h2 { margin: 0; font-size: 1.1rem; opacity: 0.85; }
 /* Figures : cadre + personnage */
 .face-art {
   position: absolute;
-  top: 20%; bottom: 20%; left: 22%; right: 22%;
+  top: 22%; bottom: 22%; left: 23%; right: 23%;
   border: 2px solid currentColor;
   border-radius: calc(var(--w) * 0.06);
   background: rgba(241, 196, 15, 0.18);
@@ -105,30 +106,124 @@ h2 { margin: 0; font-size: 1.1rem; opacity: 0.85; }
   justify-content: center;
   gap: 2px;
 }
-.face-emoji { font-size: calc(var(--w) * 0.38); line-height: 1; }
-.face-name { font-size: calc(var(--w) * 0.1); font-weight: 700; }
+.face-emoji { font-size: calc(var(--w) * 0.36); line-height: 1; }
+.face-name { font-size: calc(var(--w) * 0.085); font-weight: 700; }
 
 /* Écrans étroits (téléphone) : cartes plus petites */
 @media (max-width: 480px) {
-  :root { --w: 84px; --h: 126px; --step: 40px; }
+    :root { --w: 90px; --h: 135px; --step: 42px; }
   #pile-number { font-size: 2.6rem; }
 }
 
 #message { min-height: 1.5em; margin: 8px 0 0; font-weight: 600; }
 
-.buttons { display: flex; gap: 12px; margin-top: 12px; }
 
-button {
-  font-size: 1rem;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #f1c40f;
-  color: #222;
-  font-weight: 700;
-  cursor: pointer;
-}
 button:disabled { opacity: 0.4; cursor: not-allowed; }
-#slap-btn { background: #e74c3c; color: #fff; }
 
 #challenge-info { min-height: 1.5em; margin: 4px 0 0; color: #f1c40f; font-weight: 600; }
+
+/* ---------- Paquets retournés ---------- */
+.deck {
+  position: relative;
+  width: calc(var(--w) * 0.8);
+  height: calc(var(--h) * 0.8);
+  margin: 6px 9px 9px; /* marges symétriques : le paquet est centré, l'épaisseur déborde à droite */
+  border: 3px solid #fff;
+  border-radius: calc(var(--w) * 0.07);
+  background-color: #b3202f;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.18) 0 4px, transparent 4px 10px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.18) 0 4px, transparent 4px 10px);
+  /* l'épaisseur du paquet : quelques cartes empilées dessous */
+  box-shadow:
+    3px 3px 0 #e6e6e6,
+    6px 6px 0 #bdbdbd,
+    9px 9px 14px rgba(0, 0, 0, 0.45);
+}
+
+.deck-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 2.2em;
+  padding: 0.15em 0.45em;
+  border-radius: 999px;
+  background: #fff;
+  color: #222;
+  font-size: calc(var(--w) * 0.26);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Zone du joueur ---------- */
+.player-side {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 16px;
+}
+
+.player-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+
+@media (max-width: 480px) {
+  #play-btn { font-size: 1.8rem; }
+}
+
+/* Le paquet du joueur est cliquable */
+button.deck {
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+button.deck:hover:not(:disabled) { transform: translateY(-4px); }
+button.deck:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    1px 1px 0 #e6e6e6,
+    3px 3px 0 #bdbdbd,
+    4px 4px 8px rgba(0, 0, 0, 0.45);
+}
+button.deck:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.deck-hint { opacity: 0.8; }
+
+/* ---------- Gros message animé au centre de l'écran ---------- */
+#toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  z-index: 100;
+  pointer-events: none; /* ne bloque pas les clics */
+  white-space: nowrap;
+  font-size: clamp(3rem, 14vw, 7rem);
+  font-weight: 900;
+  /* text-transform: uppercase; */ /* décommente pour tout mettre en majuscules */
+  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.55), 0 0 30px rgba(0, 0, 0, 0.6);
+}
+#toast.nullos { color: #ff5252; }
+#toast.cheh   { color: #ffd32a; }
+#toast.noob   { color: #4fc3f7; }
+
+#toast.show { animation: toast-pop 1.5s ease-out forwards; }
+
+@keyframes toast-pop {
+  0%   { transform: translate(-50%, -50%) scale(0) rotate(-14deg); opacity: 0; }
+  15%  { transform: translate(-50%, -50%) scale(1.35) rotate(6deg); opacity: 1; }
+  28%  { transform: translate(-50%, -50%) scale(1) rotate(-4deg); }
+  75%  { transform: translate(-50%, -50%) scale(1) rotate(-4deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.2) rotate(-4deg); opacity: 0; }
+}

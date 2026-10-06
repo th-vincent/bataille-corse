@@ -12,7 +12,18 @@ let collectTimer = null;
 let gameOver = false;
 
 const $ = (id) => document.getElementById(id);
-const nameOf = (who) => (who === "player" ? "Tu" : "L'ordi");
+const nameOf = (who) => (who === "player" ? "Tu" : BOT.name);
+
+$("bot-name").textContent = BOT.name;
+
+// Gros message animé au centre de l'écran
+function showToast(text, kind) {
+  const el = $("toast");
+  el.textContent = text;
+  el.className = "";
+  void el.offsetWidth; // force le navigateur à relancer l'animation
+  el.className = `show ${kind}`;
+}
 
 // ---------- Affichage ----------
 
@@ -25,7 +36,7 @@ function challengeText() {
   if (state.challenge) {
     const defender = state.challenge.challenger === "player" ? "computer" : "player";
     const n = state.challenge.remaining;
-    return `${defender === "player" ? "Tu dois" : "L'ordi doit"} poser encore ${n} carte${n > 1 ? "s" : ""}`;
+        return `${defender === "player" ? "Tu dois" : BOT.name + " doit"} poser encore ${n} carte${n > 1 ? "s" : ""}`;
   }
   return "";
 }
@@ -46,7 +57,6 @@ function render() {
 
   $("challenge-info").textContent = gameOver ? "" : challengeText();
   $("play-btn").disabled = gameOver || state.turn !== "player";
-  $("slap-btn").disabled = gameOver;
   $("restart-btn").hidden = !gameOver;
 }
 
@@ -71,8 +81,8 @@ function scheduleBotTurn() {
   if (gameOver || state.turn !== "computer") return;
   botPlayTimer = setTimeout(() => {
     const result = playCard(state);
-    if (!result) return endGame("l'ordinateur n'a plus de cartes, tu gagnes !");
-    say(`L'ordi pose ${result.card.rank}${result.card.suit}`);
+        if (!result) return endGame(`${BOT.name} n'a plus de cartes, tu gagnes !`);
+    say(`${BOT.name} pose ${result.card.rank}${result.card.suit}`);
     afterCardPlayed();
   }, BOT.playDelay);
 }
@@ -85,6 +95,7 @@ function scheduleCollect() {
     const result = collectPile(state);
     if (!result) return;
     say(`${nameOf(result.winner)} ramasse le tas (+${result.won} cartes)`);
+    if (result.winner === "computer") showToast("Cheh", "cheh");
     render();
     scheduleBotTurn();
   }, COLLECT_DELAY);
@@ -92,12 +103,11 @@ function scheduleCollect() {
 
 function afterCardPlayed() {
   clearTimeout(botSlapTimer);
-  const hasCombo = getSlapType(state.pile) !== null;
 
-  if (hasCombo || Math.random() < BOT.mistakeChance) {
-    const pileSize = state.pile.length;
+  if (getSlapType(state.pile) !== null) {
     botSlapTimer = setTimeout(() => {
-      if (gameOver || state.pile.length !== pileSize) return;
+      // Le bot ne tape que s'il y a toujours une combinaison à ce moment-là
+      if (gameOver || getSlapType(state.pile) === null) return;
       handleSlap("computer");
     }, randomBetween(BOT.minReaction, BOT.maxReaction));
   }
@@ -113,7 +123,12 @@ function handleSlap(who) {
   if (!result) return;
 
   clearTimeout(botSlapTimer);
-  if (result.ok) clearTimeout(collectTimer); // la frappe annule le ramassage prévu
+  if (result.ok) {
+    clearTimeout(collectTimer); // la frappe annule le ramassage prévu
+    if (who === "computer") showToast("noob", "noob");
+  } else if (who === "player") {
+    showToast("Gros nullos", "nullos");
+  }
   say(
     result.ok
       ? `${nameOf(who)} ${who === "player" ? "tapes" : "tape"} : ${result.type} ! +${result.won} cartes`
@@ -147,11 +162,6 @@ document.addEventListener("keydown", (e) => {
 $("play-btn").addEventListener("click", (e) => {
   e.currentTarget.blur();
   playerPlay();
-});
-
-$("slap-btn").addEventListener("click", (e) => {
-  e.currentTarget.blur();
-  handleSlap("player");
 });
 
 $("restart-btn").addEventListener("click", () => location.reload());
