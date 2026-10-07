@@ -2,6 +2,7 @@ import { newGame, playCard, collectPile, slap } from "./state.js";
 import { getSlapType } from "./rules.js";
 import { BOT, randomBetween, DIFFICULTIES, DEFAULT_DIFFICULTY, setDifficulty } from "./bot.js";
 import { cardFaceHTML } from "./cardview.js";
+import { settings } from "./settings.js";
 
 const COLLECT_DELAY = 1500; // temps (ms) pour taper avant le ramassage du tas
 
@@ -180,5 +181,15 @@ $("play-btn").addEventListener("click", (e) => {
 });
 
 $("restart-btn").addEventListener("click", () => location.reload());
+
+$("suit-mode").addEventListener("change", (e) => {
+  settings.sameSuit = e.target.checked;
+  e.target.blur(); // rend le clavier au jeu (Entrée / Espace)
+  scheduleBotSlap();  // le bot réévalue le tas avec la nouvelle règle
+  scheduleBotTurn();
+  say(settings.sameSuit
+    ? "Mode activé : tape quand 3 cartes d'affilée ont le même symbole"
+    : "Mode désactivé");
+});
 
 render();

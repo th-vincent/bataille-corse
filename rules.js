@@ -1,3 +1,6 @@
+
+import { settings } from "./settings.js";
+
 // rules.js
 // Le tas est un tableau : la carte du dessus est la DERNIÈRE (index length - 1).
 
@@ -33,6 +36,16 @@ export function getSlapType(pile) {
 
   // Somme de 10 en sandwich : la 1re et la 3e carte (ex. 3, 4, 7)
   if (n >= 3 && sumsToTen(top, pile[n - 3])) return "sandwich de 10";
+
+    // Mode optionnel : 3 cartes d'affilée du même symbole
+  if (
+    settings.sameSuit &&
+    n >= 3 &&
+    top.suit === pile[n - 2].suit &&
+    top.suit === pile[n - 3].suit
+  ) {
+    return "3 mêmes symboles";
+  }
 
   return null; // rien à taper
 }
