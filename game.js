@@ -1,6 +1,6 @@
 import { newGame, playCard, collectPile, slap } from "./state.js";
 import { getSlapType } from "./rules.js";
-import { BOT, randomBetween } from "./bot.js";
+import { BOT, randomBetween, DIFFICULTIES, DEFAULT_DIFFICULTY, setDifficulty } from "./bot.js";
 import { cardFaceHTML } from "./cardview.js";
 
 const COLLECT_DELAY = 1500; // temps (ms) pour taper avant le ramassage du tas
@@ -15,6 +15,18 @@ const $ = (id) => document.getElementById(id);
 const nameOf = (who) => (who === "player" ? "Tu" : BOT.name);
 
 $("bot-name").textContent = BOT.name;
+
+// Choix du mode
+const difficultySelect = $("difficulty");
+difficultySelect.innerHTML = Object.entries(DIFFICULTIES)
+  .map(([key, d]) => `<option value="${key}">${d.label}</option>`)
+  .join("");
+difficultySelect.value = DEFAULT_DIFFICULTY;
+setDifficulty(DEFAULT_DIFFICULTY);
+difficultySelect.addEventListener("change", () => {
+  setDifficulty(difficultySelect.value);
+  difficultySelect.blur(); // rend le clavier au jeu (Entrée / Espace)
+});
 
 // Gros message animé au centre de l'écran
 function showToast(text, kind) {
@@ -79,6 +91,7 @@ function endGame(reason) {
 function scheduleBotTurn() {
   clearTimeout(botPlayTimer);
   if (gameOver || state.turn !== "computer") return;
+  if (getSlapType(state.pile) !== null) return; // une combinaison est sur le tas : le bot attend de taper
   botPlayTimer = setTimeout(() => {
     const result = playCard(state);
         if (!result) return endGame(`${BOT.name} n'a plus de cartes, tu gagnes !`);
@@ -101,17 +114,18 @@ function scheduleCollect() {
   }, COLLECT_DELAY);
 }
 
-function afterCardPlayed() {
+function scheduleBotSlap() {
   clearTimeout(botSlapTimer);
+  if (gameOver || getSlapType(state.pile) === null) return;
+  botSlapTimer = setTimeout(() => {
+    // Le bot ne tape que s'il y a toujours une combinaison à ce moment-là
+    if (gameOver || getSlapType(state.pile) === null) return;
+    handleSlap("computer");
+  }, randomBetween(BOT.minReaction, BOT.maxReaction));
+}
 
-  if (getSlapType(state.pile) !== null) {
-    botSlapTimer = setTimeout(() => {
-      // Le bot ne tape que s'il y a toujours une combinaison à ce moment-là
-      if (gameOver || getSlapType(state.pile) === null) return;
-      handleSlap("computer");
-    }, randomBetween(BOT.minReaction, BOT.maxReaction));
-  }
-
+function afterCardPlayed() {
+  scheduleBotSlap();
   render();
   scheduleCollect();
   scheduleBotTurn();
@@ -135,6 +149,7 @@ function handleSlap(who) {
       : `${nameOf(who)} ${who === "player" ? "tapes" : "tape"} à tort : pénalité`
   );
   render();
+  scheduleBotSlap();
   scheduleBotTurn();
 }
 
