@@ -2,7 +2,7 @@
 
 Un jeu de bataille corse jouable dans le navigateur, en solo contre l'ordinateur (Theotime). Aucune installation : il suffit d'ouvrir le lien.
 
-**Jouer : https://TON-PSEUDO.github.io/NOM-DU-DEPOT/**
+**Jouer : https://th-vincent.github.io/bataille-corse/
 
 ## Commandes
 
